@@ -18,13 +18,13 @@ componentName = typeof(componentName) == 'string' && componentName.trim().length
 
 if(componentName){
   //get ID from string
-  fs.mkdir(`${__dirname}/${componentName}`, err => {
+  fs.mkdir(`${process.env.PWD}/${componentName}`, err => {
     if(err){
       console.log('err')
       console.log(err)
     }else{
       //create Component.js file
-      fs.open(`${__dirname}/${componentName}/${componentName}.js`,'a', (err, fileDescriptor) => {
+      fs.open(`${process.env.PWD}/${componentName}/${componentName}.js`,'a', (err, fileDescriptor) => {
 
         if(err || !fileDescriptor){
           return callback('Couldnt open file for appending')
@@ -47,14 +47,14 @@ if(componentName){
             }
 
             // create css file
-            fs.open(`${__dirname}/${componentName}/${componentName}.css`,'a', (err, fileDescriptor) => {
+            fs.open(`${process.env.PWD}/${componentName}/${componentName}.css`,'a', (err, fileDescriptor) => {
 
               if(err || !fileDescriptor){
                 return callback('Couldnt open file for appending')
               }
 
               // create index.js file
-              fs.open(`${__dirname}/${componentName}/index.js`,'a', (err, indexFileDescriptor) => {
+              fs.open(`${process.env.PWD}/${componentName}/index.js`,'a', (err, indexFileDescriptor) => {
 
                 if(err || !indexFileDescriptor){
                   return callback('Couldnt open file for appending')
