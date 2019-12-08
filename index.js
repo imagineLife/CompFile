@@ -1,0 +1,287 @@
+const readline = require('readline');
+const os = require('os')
+const v8 = require('v8');
+const util = require('util');
+const fs = require('fs');
+const path = require('path')
+const events = require('events');
+class _events extends events{};
+const e = new _events();
+
+const { hzLine, verticalSpace, logTheData, compFromName, indexFromString } = require('./helpers')
+
+const makeHeader = (str) => {
+	hzLine();
+  cli.centered(str);
+  hzLine();
+  verticalSpace(2);
+}
+
+const makeFooter = (spaceHeight) => {
+	// Create a footer for the stats
+  verticalSpace(spaceHeight);
+  hzLine();
+}
+
+// Instantiate the cli module object
+let cli = {};
+
+// Input handlers
+e.on('make',function(str){
+  cli.responders.makeComponentFiles(str);
+});
+
+// Input handlers
+e.on('man',function(str){
+  cli.responders.help();
+});
+
+e.on('help',function(str){
+  cli.responders.help();
+});
+
+e.on('exit',function(str){
+  cli.responders.exit();
+});
+
+e.on('stats',function(str){
+  cli.responders.stats();
+});
+
+// Responders object
+cli.responders = {};
+
+// Help / Man
+cli.responders.help = function(){
+  // Codify the commands and their explanations
+  var commands = {
+    'exit' : 'Kill the CLI (and the rest of the application)',
+    'man' : 'Show this help page',
+    'help' : 'Alias of the "man" command',
+    'stats' : 'Get statistics on the underlying operating system and resource utilization',
+    'make --{ComponentName}': 'Creates a Component directory'
+  };
+
+  makeHeader('CLI MANUAL')
+  logTheData(commands)
+
+  makeFooter(1);
+};
+
+cli.responders.stats = function(){
+  let dataToSee = {
+    'Load Average': os.loadavg().join(' '),
+    'CPU Count': os.cpus().length,
+    'Free Memory': os.freemem(),
+    'Current Malloced Memory' : v8.getHeapStatistics().malloced_memory,
+    'Peak Malloced Memory' : v8.getHeapStatistics().peak_malloced_memory,
+    'Allocated Heap Used (%)' : Math.round((v8.getHeapStatistics().used_heap_size / v8.getHeapStatistics().total_heap_size) * 100),
+    'Available Heap Allocated (%)' : Math.round((v8.getHeapStatistics().total_heap_size / v8.getHeapStatistics().heap_size_limit) * 100),
+    'Uptime' : os.uptime()+' Seconds'
+  }
+
+  makeHeader('STATS')
+
+  // Log out each stat
+  logTheData(dataToSee)
+
+  makeFooter();
+
+};
+
+// Exit
+cli.responders.exit = function(){
+  process.exit(0);
+};
+
+// List Users
+cli.responders.recentUsers = function(){
+  
+  dataLib.listFiles(false, 'users', (err, userIds) => {
+    if(!err && userIds && userIds.length > 0){
+
+      verticalSpace()
+      
+      //loop through users
+      userIds.forEach((userId, idx ,arr) => {
+        dataLib.read('users',userId, (err,userData) => {
+          if(!err && userData){
+
+            //if made within a day, print to console
+            let madeWithinADay = helpers.checkForRecentAddition(userData.dateCreated)
+            if(madeWithinADay){
+              let line = `Name: ${userData.firstName} ${userData.lastName}  Email: ${userData.email}`
+              console.log(line)
+              verticalSpace()
+            }
+          }
+        })
+      })
+    }
+  })
+};
+
+// More user info
+cli.responders.moreUserInfo = function(str){
+  
+  //get ID from string
+  let strArr = str.split('--')
+  let emailAddress = typeof(strArr[1]) == 'string' && strArr[1].length > 0 ? strArr[1] : false;
+
+  if(emailAddress){
+    dataLib.read('users', emailAddress, (err,userData) => {
+      if(!err && userData){
+        //remove password
+        delete userData.hashedPassword;
+
+        //print json with text highlighted
+        verticalSpace()
+        console.dir(userData, {'colors': true});
+      }
+    })
+  }
+};
+
+// More order info
+cli.responders.makeComponentFiles = function(str){
+  //get ID from string
+  let strArr = str.split(' ')
+  let componentName = typeof(strArr[1]) == 'string' && strArr[1].length > 0 ? strArr[1] : false;
+  fs.mkdir(`${__dirname}/${componentName}`, err => {
+    if(err){
+      console.log('err')
+      console.log(err)
+    }else{
+      //create Component.js file
+      fs.open(`${__dirname}/${componentName}/${componentName}.js`,'a', (err, fileDescriptor) => {
+
+        if(err || !fileDescriptor){
+          return callback('Couldnt open file for appending')
+        }
+
+        let componentString = compFromName(componentName)
+
+        //Append to file and close the file
+        fs.appendFile(fileDescriptor,`${componentString}\n`, err => {
+          if(err){
+            return callback('error appending and closing the file')
+          }
+
+          //close the file
+          fs.close(fileDescriptor, (err) => {
+            if(err){
+              console.log('ERROR');
+              console.log(err)
+              return
+            }
+
+            // create css file
+            fs.open(`${__dirname}/${componentName}/${componentName}.css`,'a', (err, fileDescriptor) => {
+
+              if(err || !fileDescriptor){
+                return callback('Couldnt open file for appending')
+              }
+
+              // create index.js file
+              fs.open(`${__dirname}/${componentName}/index.js`,'a', (err, indexFileDescriptor) => {
+
+                if(err || !indexFileDescriptor){
+                  return callback('Couldnt open file for appending')
+                }
+
+                //Append to file and close the file
+                fs.appendFile(indexFileDescriptor,`${indexFromString(componentName)}\n`, err => {
+                  if(err){
+                    return callback('error appending and closing the file')
+                  }
+
+                  //close the file
+                  fs.close(indexFileDescriptor, (err) => {
+                    if(err){
+                      console.log('ERROR');
+                      console.log(err)
+                      return
+                    }
+
+                    return;
+                  })
+                })
+              })
+            })
+          })
+        })
+      })
+    }
+  })
+  
+};
+
+// Create centered text on the screen
+cli.centered = function(str){
+  str = typeof(str) == 'string' && str.trim().length > 0 ? str.trim() : '';
+
+  // Get the available screen size
+  var width = process.stdout.columns;
+
+  // Calculate the left padding there should be
+  var leftPadding = Math.floor((width - str.length) / 2);
+
+  // Put in left padded spaces before the string itself
+  var line = '';
+  for (i = 0; i < leftPadding; i++) {
+      line+=' ';
+  }
+  line+= str;
+  console.log(line);
+};
+
+// Input processor
+cli.processInput = function(str){
+  str = typeof(str) == 'string' && str.trim().length > 0 ? str.trim() : false;
+  // Only process the input if the user actually wrote something, otherwise ignore it
+  if(str){
+    // Codify the unique strings that identify the different unique questions allowed be the asked
+    let uniqueInputs = [
+      'man',
+      'help',
+      'exit',
+      'stats',
+      'make'
+    ];
+
+    // Go through the possible inputs, emit event when a match is found
+    let matchFound = false;
+    let counter = 0;
+    uniqueInputs.some(function(input){
+      if(str.toLowerCase().indexOf(input) > -1){
+        matchFound = true;
+        // Emit event matching the unique input, and include the full string given
+        e.emit(input,str);
+        return true;
+      }
+    });
+
+    // If no match is found, tell the user to try again
+    if(!matchFound){
+      console.log("Sorry, try again");
+    }
+  }
+};
+
+let cliInterface = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  prompt: ''
+});
+
+cliInterface.prompt();
+cliInterface.on('line', function(str){
+  cli.processInput(str);
+  cliInterface.prompt();
+});
+
+cliInterface.on('close', function(){
+  process.exit(0);
+});
+
+module.exports = cli;
