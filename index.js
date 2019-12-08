@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+
+'use strict';
 const readline = require('readline');
 const os = require('os')
 const v8 = require('v8');
