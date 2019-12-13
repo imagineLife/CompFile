@@ -1,7 +1,7 @@
 {
   "name": "compfile",
   "version": "1.0.5",
-  "description": "React Component Coilerplace Directory && files",
+  "description": "React Component Boilerplace Directory && files",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
