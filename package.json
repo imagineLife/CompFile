@@ -1,6 +1,6 @@
 {
   "name": "compfile",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "react-component-file-maker",
   "main": "index.js",
   "scripts": {
