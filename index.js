@@ -11,7 +11,7 @@ const events = require('events');
 class _events extends events{};
 const e = new _events();
 
-const { hzLine, verticalSpace, logTheData, compFromName, indexFromString } = require('./helpers')
+const { compFromName, indexFromString } = require('./helpers')
 
 let componentName = process.argv[2]
 componentName = typeof(componentName) == 'string' && componentName.trim().length > 0 ? componentName.trim() : false;
