@@ -11,8 +11,7 @@ return str
 const indexFromString = (compName) => {
   let str = 
 `import ${compName} from './${compName}';
-export default ${compName};
-`
+export default ${compName};`
 return str
 }
 
