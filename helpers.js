@@ -15,4 +15,4 @@ export default ${compName};`
 return str
 }
 
-module.exports = {hzLine, verticalSpace, compFromName, indexFromString}
+module.exports = { compFromName, indexFromString}
