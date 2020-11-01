@@ -15,7 +15,7 @@ const e = new _events();
 const { compFromName, indexFromString } = require('./helpers')
 
 async function compFile(){
-  let fileDescriptor;
+  let fileDescriptor, cssFileDescriptor;
   let inputComponentName = process.argv[2]
   inputComponentName = typeof(inputComponentName) == 'string' && inputComponentName.trim().length > 0 ? inputComponentName.trim() : false;
 
@@ -43,12 +43,10 @@ async function compFile(){
     await fileDescriptor.close()
 
     // create css file
-    fs.open(`${componentDirectoryString}/${inputComponentName}.css`,'a', (err, fileDescriptor) => {
+    cssFileDescriptor = await fsP.open(`${componentDirectoryString}/${inputComponentName}.css`,'a');
 
-      if(err || !fileDescriptor){
-        return callback('Couldnt open file for appending')
-      }
-
+    //close the file
+    await cssFileDescriptor.close()
       // create index.js file
       fs.open(`${componentDirectoryString}/index.js`,'a', (err, indexFileDescriptor) => {
 
@@ -73,7 +71,6 @@ async function compFile(){
           })
         })
       })
-    })
   }catch(e){
     console.log('Error')
     console.log(e);
