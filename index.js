@@ -15,7 +15,7 @@ const e = new _events();
 const { compFromName, indexFromString } = require('./helpers')
 
 async function compFile(){
-  let fileDescriptor, cssFileDescriptor;
+  let fileDescriptor, cssFileDescriptor, indexFileDescriptor;
   let inputComponentName = process.argv[2]
   inputComponentName = typeof(inputComponentName) == 'string' && inputComponentName.trim().length > 0 ? inputComponentName.trim() : false;
 
@@ -47,30 +47,18 @@ async function compFile(){
 
     //close the file
     await cssFileDescriptor.close()
-      // create index.js file
-      fs.open(`${componentDirectoryString}/index.js`,'a', (err, indexFileDescriptor) => {
+    
+    // create index.js file
+    indexFileDescriptor = await fsP.open(`${componentDirectoryString}/index.js`,'a');
 
-        if(err || !indexFileDescriptor){
-          return callback('Couldnt open file for appending')
-        }
+    //Append to file and close the file
+    await fsP.appendFile(`${componentDirectoryString}/index.js`,`${indexFromString(inputComponentName)}\n`);
 
-        //Append to file and close the file
-        fs.appendFile(indexFileDescriptor,`${indexFromString(inputComponentName)}\n`, err => {
-          if(err){
-            return callback('error appending and closing the file')
-          }
-
-          //close the file
-          fs.close(indexFileDescriptor, (err) => {
-            if(err){
-              console.log('ERROR');
-              console.log(err)
-              return
-            }
-            return;
-          })
-        })
-      })
+    // close the file
+    await indexFileDescriptor.close();
+    console.log(`Success: Your ${inputComponentName} component is ready!`)
+    return;
+    
   }catch(e){
     console.log('Error')
     console.log(e);
