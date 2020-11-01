@@ -40,42 +40,36 @@ async function compFile(){
     await fsP.appendFile(fileDescriptor,`${componentString}\n`);
 
     //close the file
-    fs.close(fileDescriptor, (err) => {
-      if(err){
-        console.log('ERROR');
-        console.log(err)
-        return
+    await fileDescriptor.close()
+
+    // create css file
+    fs.open(`${componentDirectoryString}/${inputComponentName}.css`,'a', (err, fileDescriptor) => {
+
+      if(err || !fileDescriptor){
+        return callback('Couldnt open file for appending')
       }
 
-      // create css file
-      fs.open(`${componentDirectoryString}/${inputComponentName}.css`,'a', (err, fileDescriptor) => {
+      // create index.js file
+      fs.open(`${componentDirectoryString}/index.js`,'a', (err, indexFileDescriptor) => {
 
-        if(err || !fileDescriptor){
+        if(err || !indexFileDescriptor){
           return callback('Couldnt open file for appending')
         }
 
-        // create index.js file
-        fs.open(`${componentDirectoryString}/index.js`,'a', (err, indexFileDescriptor) => {
-
-          if(err || !indexFileDescriptor){
-            return callback('Couldnt open file for appending')
+        //Append to file and close the file
+        fs.appendFile(indexFileDescriptor,`${indexFromString(inputComponentName)}\n`, err => {
+          if(err){
+            return callback('error appending and closing the file')
           }
 
-          //Append to file and close the file
-          fs.appendFile(indexFileDescriptor,`${indexFromString(inputComponentName)}\n`, err => {
+          //close the file
+          fs.close(indexFileDescriptor, (err) => {
             if(err){
-              return callback('error appending and closing the file')
+              console.log('ERROR');
+              console.log(err)
+              return
             }
-
-            //close the file
-            fs.close(indexFileDescriptor, (err) => {
-              if(err){
-                console.log('ERROR');
-                console.log(err)
-                return
-              }
-              return;
-            })
+            return;
           })
         })
       })
