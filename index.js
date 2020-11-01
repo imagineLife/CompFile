@@ -24,71 +24,67 @@ async function compFile(){
     return;
   }
 
-  //get ID from string
-  fs.mkdir(`${process.env.PWD}/${inputComponentName}`, err => {
-    if(err){
-      console.log('err')
-      console.log(err)
-    }else{
-      //create Component.js file
-      fs.open(`${process.env.PWD}/${inputComponentName}/${inputComponentName}.js`,'a', (err, fileDescriptor) => {
+  //make the fie directory
+  const componentDirectoryString = `${process.env.PWD}/${inputComponentName}`
+  await fsP.mkdir(componentDirectoryString)
+  
+  //create Component.js file
+  fs.open(`${componentDirectoryString}/${inputComponentName}.js`,'a', (err, fileDescriptor) => {
 
-        if(err || !fileDescriptor){
-          return callback('Couldnt open file for appending')
+    if(err || !fileDescriptor){
+      return callback('Couldnt open file for appending')
+    }
+
+    let componentString = compFromName(inputComponentName)
+
+    //Append to file and close the file
+    fs.appendFile(fileDescriptor,`${componentString}\n`, err => {
+      if(err){
+        return callback('error appending and closing the file')
+      }
+
+      //close the file
+      fs.close(fileDescriptor, (err) => {
+        if(err){
+          console.log('ERROR');
+          console.log(err)
+          return
         }
 
-        let componentString = compFromName(inputComponentName)
+        // create css file
+        fs.open(`${componentDirectoryString}/${inputComponentName}.css`,'a', (err, fileDescriptor) => {
 
-        //Append to file and close the file
-        fs.appendFile(fileDescriptor,`${componentString}\n`, err => {
-          if(err){
-            return callback('error appending and closing the file')
+          if(err || !fileDescriptor){
+            return callback('Couldnt open file for appending')
           }
 
-          //close the file
-          fs.close(fileDescriptor, (err) => {
-            if(err){
-              console.log('ERROR');
-              console.log(err)
-              return
+          // create index.js file
+          fs.open(`${componentDirectoryString}/index.js`,'a', (err, indexFileDescriptor) => {
+
+            if(err || !indexFileDescriptor){
+              return callback('Couldnt open file for appending')
             }
 
-            // create css file
-            fs.open(`${process.env.PWD}/${inputComponentName}/${inputComponentName}.css`,'a', (err, fileDescriptor) => {
-
-              if(err || !fileDescriptor){
-                return callback('Couldnt open file for appending')
+            //Append to file and close the file
+            fs.appendFile(indexFileDescriptor,`${indexFromString(inputComponentName)}\n`, err => {
+              if(err){
+                return callback('error appending and closing the file')
               }
 
-              // create index.js file
-              fs.open(`${process.env.PWD}/${inputComponentName}/index.js`,'a', (err, indexFileDescriptor) => {
-
-                if(err || !indexFileDescriptor){
-                  return callback('Couldnt open file for appending')
+              //close the file
+              fs.close(indexFileDescriptor, (err) => {
+                if(err){
+                  console.log('ERROR');
+                  console.log(err)
+                  return
                 }
-
-                //Append to file and close the file
-                fs.appendFile(indexFileDescriptor,`${indexFromString(inputComponentName)}\n`, err => {
-                  if(err){
-                    return callback('error appending and closing the file')
-                  }
-
-                  //close the file
-                  fs.close(indexFileDescriptor, (err) => {
-                    if(err){
-                      console.log('ERROR');
-                      console.log(err)
-                      return
-                    }
-                    return;
-                  })
-                })
+                return;
               })
             })
           })
         })
       })
-    }
+    })
   })
 } 
 
