@@ -25,6 +25,13 @@ async function compFile(){
     return;
   }
 
+  // If Component is lowercase, do not allow
+  if(inputComponentName.charAt(0) === inputComponentName.charAt(0).toLowerCase()){
+    const attemptedFileName = inputComponentName.charAt(0).toUpperCase() + + inputComponentName.slice(1)
+    console.log(`ERROR: Components cannot start with lowercase letters, try ${attemptedFileName}`);
+    return;
+  }
+
   //make the fie directory
   const componentDirectoryString = `${process.env.PWD}/${inputComponentName}`
 
